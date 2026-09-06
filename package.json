@@ -1,0 +1,9 @@
+{
+  "name": "engedny-node",
+  "version": "1.0.0",
+  "description": "Engedny desktop service marketplace built with Electron and SQLite.",
+  "main": "main.js",
+  "scripts": { "start": "node server.js", "dev": "node --watch server.js", "electron": "electron ." },
+  "dependencies": { "better-sqlite3": "^12.4.1", "express": "^5.1.0" },
+  "devDependencies": { "electron": "^38.7.2" }
+}

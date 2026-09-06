@@ -1,0 +1,25 @@
+/* Arabic reading direction and mirrored application chrome */
+html[dir="rtl"] body{direction:rtl;text-align:right}
+html[dir="rtl"] .sidebar{border-left:0;border-inline-start:0;border-inline-end:1px solid var(--border-soft)}
+html[dir="rtl"] .content,html[dir="rtl"] .form,html[dir="rtl"] .auth,html[dir="rtl"] .settings,html[dir="rtl"] .chat-box,html[dir="rtl"] .peer-list,html[dir="rtl"] .modal{text-align:start}
+html[dir="rtl"] .back .ico{transform:scaleX(-1)}
+html[dir="rtl"] .onboard,html[dir="rtl"] .onboard-card,html[dir="rtl"] .role,html[dir="rtl"] .profile-identity{text-align:center}
+html[dir="rtl"] .onboard-card .tiny{text-align:center}
+html[dir="rtl"] input[type="email"],html[dir="rtl"] input[type="password"],html[dir="rtl"] input[type="tel"],html[dir="rtl"] input[name="phone"]{direction:ltr;text-align:left}
+html[dir="rtl"] input[type="date"],html[dir="rtl"] input[type="time"],html[dir="rtl"] input[type="number"]{direction:ltr;text-align:right}
+html[dir="rtl"] .bubble span{direction:auto;unicode-bidi:plaintext;text-align:start}
+html[dir="rtl"] .delivery{direction:ltr;text-align:right}
+
+@media (min-width:901px){
+  .nav.active{box-shadow:none;border-inline-start:3px solid var(--primary)}
+  html[dir="rtl"] .nav.active{padding-inline-start:12px}
+}
+
+@media (max-width:760px){
+  html[dir="rtl"] .sidebar{border-inline-end:0;border-top:1px solid var(--border-soft)}
+  html[dir="rtl"] .nav.active{border-inline-start:0;box-shadow:inset 0 -3px 0 var(--primary)}
+  html[dir="rtl"] .message-form input{text-align:right}
+}
+
+html[dir="ltr"] body{direction:ltr;text-align:left}
+html[dir="ltr"] .back .ico{transform:none}
