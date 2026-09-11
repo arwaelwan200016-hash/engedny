@@ -1,0 +1,5 @@
+.chat-ref-info{display:flex;align-items:center;gap:9px;margin:13px 25px -5px;padding:10px 13px;border:1px solid #e3ddff;border-radius:13px;background:#f6f3ff;color:#6752be;font-size:11px;font-weight:700}
+.chat-ref-info b{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.chat-ref-info span{color:#8290af}
+.chat-ref-tool:focus-visible,.chat-ref-emoji:focus-visible,.chat-ref-more:focus-visible{outline:3px solid rgba(113,89,220,.25);outline-offset:2px}
+@media(max-width:700px){.chat-ref-info{display:grid;margin:10px 13px -5px;font-size:10px}}
