@@ -1,3 +1,6 @@
+if (process.env.DATABASE_URL) {
+  require('./server-postgres');
+} else {
 const express = require('express');
 const path = require('path');
 const Database = require('better-sqlite3');
@@ -96,3 +99,4 @@ app.get('/chat-visual.css', (_, res) => res.sendFile(path.join(__dirname, 'chat-
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 const port=Number(process.env.PORT)||3000;
 app.listen(port,()=>console.log(`Engedny is running at http://localhost:${port}`));
+}
