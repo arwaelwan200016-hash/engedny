@@ -2,8 +2,10 @@
 setlocal
 cd /d "%~dp0"
 echo Engedny - Import local data into Supabase
-echo Copy the completed Transaction pooler connection string first.
+echo First, copy the completed Transaction pooler connection string.
 echo Do not share this connection string with anyone.
+echo When it is copied, return here and press any key.
+pause >nul
 set "NODE_EXE=C:\Users\Elwan\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
 if not exist "%NODE_EXE%" (
   echo Node.js was not found. Please install Node.js from https://nodejs.org/

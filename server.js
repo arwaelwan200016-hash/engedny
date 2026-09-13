@@ -5,6 +5,7 @@ const express = require('express');
 const path = require('path');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
+const { migrate } = require('./scripts/import-supabase-data');
 
 const app = express();
 const db = new Database(path.join(__dirname, 'engedny-local.db'));
@@ -54,6 +55,15 @@ function appData() { return { user:db.prepare('SELECT * FROM users WHERE id=1').
 
 app.use(express.json({limit:'7mb'}));
 app.use((_, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+app.post('/api/local/import-supabase', async (req,res) => {
+  try {
+    await migrate(String(req.body?.connectionString || ''));
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Supabase import failed:', error.message);
+    res.status(400).json({ error: error.message || 'تعذر نقل البيانات.' });
+  }
+});
 app.get('/api/services',(_,res)=>res.json(db.prepare('SELECT * FROM services').all()));
 app.get('/api/users',(req,res)=>{const role=req.query.role;const rows=role?db.prepare('SELECT * FROM users WHERE role=? ORDER BY full_name').all(role):db.prepare('SELECT * FROM users ORDER BY full_name').all();res.json(rows.map(publicUser));});
 app.get('/api/chat-peers/:userId',(req,res)=>{const userId=Number(req.params.userId),user=db.prepare('SELECT id,role FROM users WHERE id=?').get(userId);if(!user)return res.status(404).json({error:'المستخدم غير موجود'});const peers=user.role==='provider'?db.prepare("SELECT id,full_name,avatar_data,'customer' AS role FROM users WHERE role='customer' AND id<>? ORDER BY full_name").all(userId):db.prepare("SELECT u.id,u.full_name,u.avatar_data,'provider' AS role,p.location,s.name_ar,s.name_en FROM users u JOIN providers p ON p.user_id=u.id JOIN services s ON s.id=p.service_id WHERE u.role='provider' AND u.id<>? ORDER BY u.full_name").all(userId);res.json(peers.map(publicUser));});
@@ -96,6 +106,7 @@ app.get('/settings-visual.js', (_, res) => res.sendFile(path.join(__dirname, 'se
 app.get('/settings-visual.css', (_, res) => res.sendFile(path.join(__dirname, 'settings-visual.css')));
 app.get('/chat-visual.js', (_, res) => res.sendFile(path.join(__dirname, 'chat-visual.js')));
 app.get('/chat-visual.css', (_, res) => res.sendFile(path.join(__dirname, 'chat-visual.css')));
+app.get('/import-supabase.html', (_, res) => res.sendFile(path.join(__dirname, 'import-supabase.html')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 const port=Number(process.env.PORT)||3000;
 app.listen(port,()=>console.log(`Engedny is running at http://localhost:${port}`));
