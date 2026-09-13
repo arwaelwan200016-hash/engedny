@@ -5,8 +5,16 @@ const crypto = require('crypto');
 
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required when running with Supabase.');
 
-const app = express();
-const sql = postgres(process.env.DATABASE_URL, { max: 1, prepare: false, ssl: 'require' });
+const app = express();// Vercel may run several isolated function instances for one page load. Keep
+// each instance to one short-lived session, and never open a database session
+// while simply serving static browser files.
+const sql = postgres(process.env.DATABASE_URL, {
+  max: 1,
+  prepare: false,
+  ssl: 'require',
+  idle_timeout: 2,
+  max_lifetime: 60,
+});
 const hashPassword = password => { const salt = crypto.randomBytes(16).toString('hex'); return `${salt}:${crypto.scryptSync(password, salt, 64).toString('hex')}`; };
 const passwordMatches = (password, stored = '') => { const [salt, key] = stored.split(':'); return !!salt && crypto.timingSafeEqual(Buffer.from(key, 'hex'), crypto.scryptSync(password, salt, 64)); };
 const publicUser = user => { const { password_hash, ...safe } = user; return safe; };
@@ -26,16 +34,14 @@ async function seed() {
       await tx.unsafe('INSERT INTO providers(user_id,service_id,location,experience,price,rating,review_count,bio) VALUES($1,$2,$3,$4,$5,$6,$7,$8)', [user.id,serviceId,location,experience,price,rating,reviews,bio]);
     }
   });
-}
-
-const databaseReady = seed();
+}let databaseReady;
+const ensureDatabaseReady = () => databaseReady ||= seed();
 async function providerSearch(term = '') {
   const q = `%${term}%`;
   return all('SELECT p.*,u.full_name,u.phone,u.avatar_data,s.name_en,s.name_ar,s.icon FROM providers p JOIN users u ON u.id=p.user_id JOIN services s ON s.id=p.service_id WHERE lower(u.full_name) LIKE lower($1) OR lower(s.name_en) LIKE lower($1) OR s.name_ar LIKE $1 OR lower(p.location) LIKE lower($1) ORDER BY p.rating DESC', [q]);
 }
 
-app.use(express.json({ limit: '7mb' }));
-app.use(async (_req, res, next) => { try { await databaseReady; res.set('Cache-Control', 'no-store'); next(); } catch (error) { next(error); } });
+app.use(express.json({ limit: '7mb' }));app.use('/api', async (_req, res, next) => { try { await ensureDatabaseReady(); res.set('Cache-Control', 'no-store'); next(); } catch (error) { next(error); } });
 
 app.get('/api/services', async (_req,res) => res.json(await all('SELECT * FROM services ORDER BY id')));
 app.get('/api/users', async (req,res) => { const rows = req.query.role ? await all('SELECT * FROM users WHERE role=$1 ORDER BY full_name', [req.query.role]) : await all('SELECT * FROM users ORDER BY full_name'); res.json(rows.map(publicUser)); });
