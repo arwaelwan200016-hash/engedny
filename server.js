@@ -6,6 +6,7 @@ const path = require('path');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
 const { migrate } = require('./scripts/import-supabase-data');
+const { createSqlExport } = require('./scripts/export-sqlite-supabase-sql');
 
 const app = express();
 const db = new Database(path.join(__dirname, 'engedny-local.db'));
@@ -61,7 +62,24 @@ app.post('/api/local/import-supabase', async (req,res) => {
     res.json({ ok: true });
   } catch (error) {
     console.error('Supabase import failed:', error.message);
-    res.status(400).json({ error: error.message || 'تعذر نقل البيانات.' });
+    const codes = {
+      '28P01': 'كلمة المرور غير صحيحة.',
+      'ECONNREFUSED': 'تم رفض الاتصال بقاعدة البيانات.',
+      'ENOTFOUND': 'تعذر الوصول إلى خادم قاعدة البيانات.',
+      'ETIMEDOUT': 'انتهت مهلة الاتصال بقاعدة البيانات.',
+      'ERR_INVALID_URL': 'رابط الاتصال غير صحيح.',
+    };
+    const code = String(error?.code || 'UNKNOWN');
+    res.status(400).json({ error: codes[code] || 'تعذر نقل البيانات.', code });
+  }
+});
+
+app.get('/api/local/export-supabase-sql', (_, res) => {
+  try {
+    res.type('text/plain; charset=utf-8').send(createSqlExport());
+  } catch (error) {
+    console.error('Could not export local SQLite data:', error);
+    res.status(500).type('text/plain; charset=utf-8').send('Could not export local data.');
   }
 });
 app.get('/api/services',(_,res)=>res.json(db.prepare('SELECT * FROM services').all()));
